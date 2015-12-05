@@ -133,27 +133,7 @@ std::string intToString(int &a)
 	}
 	return s;
 }
-/*
- template <class T> void dequeAll(int n, int startSize, T fromInt(int &a))
-{
-	MyDeque<int> a(startSize);
-	for (int i = 1; i < n; ++i)
-	{
-		if (i % 3 == 0)
-		{
-			for (int j = 0; j < i; ++j)
-			{
-				a.
-			}
-		}
-	}
-	
-}
 
-TEST(Uncle, fucker)
-{
-	
-}*/
 
 
 TEST(IteratorTest, simpleIterator)
@@ -238,36 +218,7 @@ TEST(IteratorTest, ReverseIterator)
 
 
 
-/*
-void testIteratorPlusMinus()
-{
-		for (auto it = a.rbegin(); it != a.rend(); ++it)
-	{
-		std::cout << *it << " ";
-	}
-	cout << "\n";
-	//std::sort(a.cbegin(), a.cend());
-	for (auto it = a.cbegin(); it != a.cend(); ++it)
-	{
-		std::cout << *it << " ";
-	}
-	cout << "\n";
-	cout << a.cend()[-1] << a.cend()[-2] << a.end()[-1] << a.end()[-2] << "\n";
-	for (auto it = a.crbegin(); it != a.crend(); ++it)
-		cout << *it << " ";
-	//cout << *a.crend();
-	//cout << *a.crbegin();
-}*/
 
-
-
-
-
-
-
-
-/*class CRectTest : public ::testing::Test {
-};*/
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
