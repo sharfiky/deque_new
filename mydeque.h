@@ -10,60 +10,31 @@
 
 const int minCap = 8;
 
-int norm(int a, int b)
-{
-	return (a + b) % b;
-}
 
 
 template<class T> class MyDeque {
 private:
 	int capacity_;
 	int begin_, end_;
-	std::vector <T> val;
+	std::vector <T> value_;
 
-	int norm(int n)
+	int normilize_(int n) const
 	{
 		return (n + capacity_) % capacity_;
 	}
 
-	/*int norm(int n)
-	{
-	return n % capacity_;
-	}*/
-
 
 public:
-	MyDeque() : capacity_(minCap), val(minCap),
+	MyDeque() : capacity_(minCap), value_(minCap),
 		end_(0), begin_(minCap - 1) {
 	}
 	MyDeque(int cap) : end_(0), capacity_(std::max(cap, minCap)),
-					val(std::max(cap, minCap)), begin_(std::max(cap, minCap) - 1)
+					value_(std::max(cap, minCap)), begin_(std::max(cap, minCap) - 1)
 	{}
-	MyDeque(const MyDeque &some) : capacity_(some.capacity_), val(some.val),
+	MyDeque(const MyDeque &some) : capacity_(some.capacity_), value_(some.value_),
 		end_(some.end_), begin_(some.begin_) {
 	}
-	/*	MyDeque& operator = (const MyDeque & some)
-	{
-	val = some.val;
-	capacity_ = some.capacity_;
-	begin_ = some.begin_;
-	end_ = some.end_;
-	std::cout << "EQ\n";
-	return *this;
-	}
 
-	*/
-	/*
-	MyDeque( MyDeque &&some):
-	{
-	val = some.val;
-	capacity_ = some.capacity_;
-	begin_ = some.begin_;
-	end_ = some.end_;
-	cout << "MOVE\n";
-	}
-	*/
 	~MyDeque() {}
 	int size() const
 	{
@@ -86,62 +57,60 @@ public:
 	void makeLarger()
 	{
 		std::vector<T> tmp(capacity_ * 2);
-		for (int i = norm(begin_ + 1), j = 0; i != end_; i = norm(++i), ++j)
-			tmp[j] = val[i];
-		val = tmp;
+		for (int i = normilize_(begin_ + 1), j = 0; i != end_; i = normilize_(++i), ++j)
+			tmp[j] = value_[i];
+		value_ = tmp;
 		end_ = size();
 		capacity_ *= 2;
-		begin_ = norm(capacity_ - 1);
+		begin_ = normilize_(capacity_ - 1);
 	}
 	void makeSmaller()
 	{
 		std::vector<T> tmp(capacity_ / 2);
-		for (int i = norm(begin_ + 1), j = 0; i != end_; i = norm(i + 1), ++j)
-			tmp[j] = val[i];
-		val = tmp;
+		for (int i = normilize_(begin_ + 1), j = 0; i != end_; i = normilize_(i + 1), ++j)
+			tmp[j] = value_[i];
+		value_ = tmp;
 		end_ = size();
 		capacity_ /= 2;
-		begin_ = norm(capacity_ - 1);
+		begin_ = normilize_(capacity_ - 1);
 	}
 	void push_back(const T &tmp)
 	{
-		val[end_] = tmp;
-		//++end_; //--begin_;
-		end_ = norm(1 + end_);
+		value_[end_] = tmp;
+		end_ = normilize_(1 + end_);
 		checkToMakeLarger();
 	}
 	void push_front(const T &tmp)
 	{
 
-		val[begin_] = tmp;
-		begin_ = norm(begin_ - 1);
+		value_[begin_] = tmp;
+		begin_ = normilize_(begin_ - 1);
 		checkToMakeLarger();
 	}
-	void pop_back() //front
+	void pop_back() 
 	{
-		//--end_; //++begin_;
-		end_ = norm(end_ - 1);
+		end_ = normilize_(end_ - 1);
 		checkToMakeSmaller();
 	}
 	void pop_front()
 	{
-		begin_ = norm(begin_ + 1);
+		begin_ = normilize_(begin_ + 1);
 		checkToMakeSmaller();
 	}
 	T front() {
-		return val[norm(begin_ + 1)];
+		return value_[normilize_(begin_ + 1)];
 	}
 	T front() const {
-		return val[norm(begin + 1, capacity_)];
+		return value_[normilize_(begin + 1)];
 	}
 	T back() {
-		return val[norm(end_ - 1)];
+		return value_[normilize_(end_ - 1)];
 	}
 	T back() const {
-		return val[norm(end - 1, capacity_)];
+		return value_[normilize_(end - 1)];
 	}
 	int head() {
-		return norm(begin_ + 1);
+		return normilize_(begin_ + 1);
 	}
 	int tail()
 	{
@@ -149,11 +118,11 @@ public:
 	}
 	T& operator [](int id)
 	{
-		return (val[norm(begin_ + 1 + id)]);
+		return (value_[normilize_(begin_ + 1 + id)]);
 	}
-	T& operator [](int id) const
+	const T& operator [](int id) const
 	{
-		return (val[norm(begin + 1 + id), capacity_]);
+		return (value_[normilize_(begin_ + 1 + id)]);
 	}
 	template <class R>
 	class base_iterator : public std::iterator<std::random_access_iterator_tag, MyDeque<T> >
@@ -163,7 +132,7 @@ public:
 		int num;
 		int capacity_;
 		int begin_;
-		base_iterator& norm(const base_iterator& a, difference_type delta) const
+		base_iterator& normilize_(const base_iterator& a, difference_type delta) const
 		{
 			int new_pos = (a.num + delta + a.capacity_) % a.capacity_;
 			return base_iterator(a.ptr - a.num + new_pos, new_pos, a.capacity_, a.begin_);
@@ -211,39 +180,39 @@ public:
 		base_iterator& operator ++()
 		{
 
-			return *this = norm(*this, 1);
+			return *this = normilize_(*this, 1);
 		}
 		base_iterator& operator ++(int)
 		{
 
-			return *this = norm(*this, 1);;
+			return *this = normilize_(*this, 1);;
 		}
 		base_iterator& operator --()
 		{
-			return *this = norm(*this, -1);
+			return *this = normilize_(*this, -1);
 		}
 		base_iterator& operator --(int)
 		{
-			return *this = norm(*this, -1);
+			return *this = normilize_(*this, -1);
 		}
 		base_iterator& operator +=(const difference_type& idx)
 		{
-			return *this = norm(*this, idx);
+			return *this = normilize_(*this, idx);
 		}
 		base_iterator& operator -=(const difference_type& idx)
 		{
-			return *this = norm(*this, -idx);
+			return *this = normilize_(*this, -idx);
 		}
 		base_iterator operator +(const difference_type& idx) const
 		{
-			return norm(*this, idx);
+			return normilize_(*this, idx);
 		}
 		base_iterator operator -(const difference_type& idx) const
 		{
 			base_iterator Tmp(*this);
 			return Tmp -= idx;
 		}
-		reference operator [](const size_type& idx) const // I don't know
+		reference operator [](const size_type& idx) const 
 		{
 			return *(*this + idx);
 		}
@@ -257,15 +226,11 @@ public:
 		}
 		bool operator ==(const base_iterator& Other) const
 		{
-			/*int a = toGoodVision(Other);
-			//int b = toGoodVision(*this);
-			int b = -a;*/
 			return toGoodVision(Other) == toGoodVision(*this);
 		}
 		bool operator !=(const base_iterator& Other) const
 		{
 			return !(*this == Other);
-			//return toGoodVision(*this) == toGoodVision(Other);
 		}
 		bool operator <=(const base_iterator& Other) const
 		{
@@ -286,36 +251,35 @@ public:
 	typedef std::reverse_iterator<iterator>        reverse_iterator;
 	iterator begin()
 	{
-		return iterator(&val[head()], head(), capacity_, begin_);
+		return iterator(&value_[head()], head(), capacity_, begin_);
 	}
 	iterator end()
 	{
-		return iterator(&val[tail()], tail(), capacity_, begin_);
+		return iterator(&value_[tail()], tail(), capacity_, begin_);
 	}
 	iterator begin() const
 	{
-		return iterator(&val[head()], head(), capacity_, begin_);
-		//return begin();
+		return iterator(&value_[head()], head(), capacity_, begin_);
 	}
 	iterator end() const
 	{
-		return iterator(&val[tail()], tail(), capacity_, begin_);
+		return iterator(&value_[tail()], tail(), capacity_, begin_);
 	}
 	const_iterator cend()
 	{
-		return const_iterator(&val[tail()], tail(), capacity_, begin_);
+		return const_iterator(&value_[tail()], tail(), capacity_, begin_);
 	}
 	const_iterator cbegin()
 	{
-		return const_iterator(&val[head()], head(), capacity_, begin_);
+		return const_iterator(&value_[head()], head(), capacity_, begin_);
 	}
 	const_iterator cend() const
 	{
-		return const_iterator(&val[tail()], tail(), capacity_, begin_);
+		return const_iterator(&value_[tail()], tail(), capacity_, begin_);
 	}
 	const_iterator cbegin() const
 	{
-		return const_iterator(&val[head()], head(), capacity_, begin_);
+		return const_iterator(&value_[head()], head(), capacity_, begin_);
 	}
 	reverse_iterator rend()
 	{
@@ -335,22 +299,18 @@ public:
 	}
 	const_reverse_iterator crend()
 	{
-		//return reverse_iterator(cbegin());
 		return std::reverse_iterator<MyDeque<T>::base_iterator<const T> >(cbegin());
 	}
 	const_reverse_iterator crbegin() 
 	{
-		//return reverse_iterator(cend());
 		return std::reverse_iterator<MyDeque<T>::base_iterator<const T> >(cend());
 	}
 	const_reverse_iterator crend() const
 	{
-		//return reverse_iterator(cbegin());
 		return std::reverse_iterator<MyDeque<T>::base_iterator<const T> >(cbegin());
 	}
 	const_reverse_iterator crbegin() const
 	{
-		//return reverse_iterator(cend());
 		return std::reverse_iterator<MyDeque<T>::base_iterator<const T> >(cend());
 	}
 };

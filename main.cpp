@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
+#include <deque>
 #include "gtest/gtest.h"
 #include "mydeque.h"
 
@@ -139,7 +140,7 @@ std::string intToString(int &a)
 TEST(IteratorTest, simpleIterator)
 {
 	MyDeque<int> a(10);
-	int n = 9;
+	int n = 10;
 	fillIntDeque(n, a);
 	auto it = a.begin(), finish = a.end();
 	ASSERT_EQ(1, *it);
@@ -174,7 +175,7 @@ TEST(IteratorTest, simpleIterator)
 	}
 	for (int i = 0; i < n; ++i)
 	{
-		ASSERT_EQ(b[i], c[i]);
+		ASSERT_EQ(b[i], c[i]) << "fucking push_back";
 	}
 	std::sort(c.begin(), c.end());
 	std::sort(b.begin(), b.end());
@@ -216,7 +217,119 @@ TEST(IteratorTest, ReverseIterator)
 	
 }
 
+void push_backToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
+{
+	a.push_back(x);
+	b.push_back(x);
+	ASSERT_EQ(a.size(), b.size());
+	ASSERT_EQ(a.back(), b.back());
+}
 
+void pop_backToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
+{
+	ASSERT_EQ(a.empty(), b.empty());
+	if (!a.empty())
+	{
+		a.pop_back();
+		b.pop_back();
+		ASSERT_EQ(a.size(), b.size());
+		ASSERT_EQ(a.empty(), b.empty());
+		if (!a.empty())
+			ASSERT_EQ(a.back(), b.back());
+	}
+}
+
+void pop_frontToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
+{
+	ASSERT_EQ(a.empty(), b.empty());
+	if (!a.empty())
+	{
+		a.pop_front();
+		b.pop_front();
+		ASSERT_EQ(a.size(), b.size());
+		ASSERT_EQ(a.empty(), b.empty());
+		if (!a.empty())
+			ASSERT_EQ(a.front(), b.front());
+	}
+}
+
+void push_frontToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
+{
+	a.push_front(x);
+	b.push_front(x);
+	ASSERT_EQ(a.front(), b.front());
+}
+
+void extend(MyDeque<int> &my, std::deque<int> &your, int N)
+{
+	for (int i = 0; i < N; ++i)
+	{
+		push_backToBoth(my, your, rand());
+		push_frontToBoth(my, your, rand());
+	}
+}
+
+void makeShorter(MyDeque<int> &my, std::deque<int> &your, int N)
+{
+	for (int i = 0; i < N; ++i)
+	{
+		pop_backToBoth(my, your, rand());
+		pop_frontToBoth(my, your, rand());
+	}
+}
+void checkEqualDeques(const MyDeque<int> &my, const std::deque<int> &your, std::string mistake)
+{
+	bool ans = 1;
+	ASSERT_EQ(my.size(), your.size());
+	for (size_t i = 0; i < my.size(); ++i)
+		ASSERT_EQ(my[i], your[i]) << "mistake in " << mistake;
+}
+
+void sortBothByNormalIterator(MyDeque<int> &my, std::deque<int> &your)
+{
+	std::sort(my.begin(), my.end());
+	std::sort(your.begin(), your.end());
+	checkEqualDeques(my, your, "normalIterator");
+}
+
+void sortBothByReverseIterator(MyDeque<int> &my, std::deque<int> &your)
+{
+	std::sort(my.rbegin(), my.rend());
+	std::sort(your.rbegin(), your.rend());
+	checkEqualDeques(my, your, "ReverseIterator");
+}
+
+void reverseBoth(MyDeque<int> &my, std::deque<int> &your)
+{
+	std::reverse(my.begin(), my.end());
+	std::reverse(your.begin(), your.end());
+}
+
+
+
+
+TEST(StressTest, Little)
+{
+	int N = 1 << 5;
+	MyDeque<int> my;
+	std::deque <int> your;
+	extend(my, your, N);
+	makeShorter(my, your, N / 2);
+	N /= 2; //N = n / 2
+	sortBothByReverseIterator(my, your);
+	extend(my, your, N / 2); // N / 2 = n / 4
+	N += N / 2; // N = n * 0.75
+	makeShorter(my, your, N / 3);
+	N -= N / 3; //N = n / 2
+	extend(my, your, N);
+	N *= 2;
+		
+	makeShorter(my, your, N / 4 * 3);
+	N /= 4; // N = n / 4
+	reverseBoth(my, your);
+	makeShorter(my, your, N);
+	ASSERT_EQ(my.empty(), your.empty());
+}
 
 
 
