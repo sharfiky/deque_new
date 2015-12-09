@@ -26,19 +26,46 @@ private:
 
 public:
 	MyDeque() : capacity_(minCap), value_(minCap),
-		end_(0), begin_(minCap - 1) {
+		end_(0), begin_(0) {
 	}
 	MyDeque(int cap) : end_(0), capacity_(std::max(cap, minCap)),
-					value_(std::max(cap, minCap)), begin_(std::max(cap, minCap) - 1)
+					value_(std::max(cap, minCap)), begin_(0)
 	{}
 	MyDeque(const MyDeque &some) : capacity_(some.capacity_), value_(some.value_),
 		end_(some.end_), begin_(some.begin_) {
 	}
+	MyDeque(MyDeque &&some) : capacity_(0), value_(nullptr),
+		end_(0), begin_(0) {
+		capacity_ = some.capacity_;
+		end_ = some.end_;
+		begin_ = some.begin_;
+		value_ = some.value_;
 
+		some.capacity_ = 0;
+		some.end_ = 0;
+		some.begin_ = 0;
+		some.value_ = nullptr;
+	}
+	MyDeque& operator=(MyDeque&& some)
+	{
+		if (this != &some)
+		{
+			capacity_ = some.capacity_;
+			end_ = some.end_;
+			begin_ = some.begin_;
+			value_ = some.value_;
+
+			some.capacity_ = 0;
+			some.end_ = 0;
+			some.begin_ = 0;
+			some.value_ = nullptr;
+		}
+		return *this;
+	}
 	~MyDeque() {}
 	int size() const
 	{
-		return (end_ + capacity_ - begin_ - 1) % capacity_;
+		return (end_ + capacity_ - begin_) % capacity_;
 	}
 	bool empty() const
 	{
@@ -46,7 +73,7 @@ public:
 	}
 	void checkToMakeLarger()
 	{
-		if (begin_ == end_)
+		if (normilize_(begin_ - 1) == end_)
 			makeLarger();
 	}
 	void checkToMakeSmaller()
@@ -57,22 +84,22 @@ public:
 	void makeLarger()
 	{
 		std::vector<T> tmp(capacity_ * 2);
-		for (int i = normilize_(begin_ + 1), j = 0; i != end_; i = normilize_(++i), ++j)
+		for (int i = begin_, j = 0; i != end_; i = normilize_(++i), ++j)
 			tmp[j] = value_[i];
 		value_ = tmp;
 		end_ = size();
 		capacity_ *= 2;
-		begin_ = normilize_(capacity_ - 1);
+		begin_ = 0;
 	}
 	void makeSmaller()
 	{
 		std::vector<T> tmp(capacity_ / 2);
-		for (int i = normilize_(begin_ + 1), j = 0; i != end_; i = normilize_(i + 1), ++j)
+		for (int i = begin_, j = 0; i != end_; i = normilize_(i + 1), ++j)
 			tmp[j] = value_[i];
 		value_ = tmp;
 		end_ = size();
 		capacity_ /= 2;
-		begin_ = normilize_(capacity_ - 1);
+		begin_ = 0;
 	}
 	void push_back(const T &tmp)
 	{
@@ -83,8 +110,7 @@ public:
 	void push_front(const T &tmp)
 	{
 
-		value_[begin_] = tmp;
-		begin_ = normilize_(begin_ - 1);
+		value_[begin_ = normilize_(begin_ - 1)] = tmp;
 		checkToMakeLarger();
 	}
 	void pop_back() 
@@ -98,10 +124,10 @@ public:
 		checkToMakeSmaller();
 	}
 	T front() {
-		return value_[normilize_(begin_ + 1)];
+		return value_[begin_];
 	}
 	T front() const {
-		return value_[normilize_(begin + 1)];
+		return value_[begin_];
 	}
 	T back() {
 		return value_[normilize_(end_ - 1)];
@@ -110,7 +136,7 @@ public:
 		return value_[normilize_(end - 1)];
 	}
 	int head() {
-		return normilize_(begin_ + 1);
+		return begin_;
 	}
 	int tail()
 	{
@@ -118,11 +144,11 @@ public:
 	}
 	T& operator [](int id)
 	{
-		return (value_[normilize_(begin_ + 1 + id)]);
+		return (value_[normilize_(begin_ + id)]);
 	}
 	const T& operator [](int id) const
 	{
-		return (value_[normilize_(begin_ + 1 + id)]);
+		return (value_[normilize_(begin_ + id)]);
 	}
 	template <class R>
 	class base_iterator : public std::iterator<std::random_access_iterator_tag, MyDeque<T> >
@@ -139,7 +165,7 @@ public:
 		}
 		int toGoodVision(const base_iterator& a) const
 		{
-			return (-a.begin_ - 1 + a.num + a.capacity_) % a.capacity_;
+			return (-a.begin_ + a.num + a.capacity_) % a.capacity_;
 		}
 	public:
 		typedef ptrdiff_t difference_type;

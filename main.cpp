@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -6,25 +8,32 @@
 #include <algorithm>
 #include <iterator>
 #include <deque>
+#include <ctime>
+#include "transforms.h"
 #include "gtest/gtest.h"
 #include "mydeque.h"
 
 using std::cout;
 
-void fillIntDeque(int &n, MyDeque<int> &a) {
-	for (int i = 0; i < n; ++i)
+typedef int timeType;
+
+void fillIntDeque(size_t &n, MyDeque<int> &a) {
+	for (size_t i = 0; i < n; ++i)
 	{
 		a.push_back(i);
 		a.push_front(n - i);
 	}
 }
 
+timeType getTime() {
+	return clock();
+}
 
 
 TEST(DequeLikeDeque, PushTakeBack)
 {
 	MyDeque<int> a;
-	for (int i = 1; i < 10; ++i)
+	for (size_t i = 1; i < 10; ++i)
 	{
 		a.push_back(i);
 		ASSERT_EQ(i, a.back());
@@ -33,7 +42,7 @@ TEST(DequeLikeDeque, PushTakeBack)
 TEST(DequeLikeDeque, PushTakeFront)
 {
 	MyDeque<int> a;
-	for (int i = 1; i < 10; ++i)
+	for (size_t i = 1; i < 10; ++i)
 	{
 		a.push_front(i);
 		ASSERT_EQ(i, a.front());
@@ -43,11 +52,11 @@ TEST(DequeLikeDeque, PushTakeFront)
 TEST(DequeLikeDeque, PopFront)
 {
 	MyDeque<int> a;
-	for (int i = 1; i < 10; ++i)
+	for (size_t i = 1; i < 10; ++i)
 	{
 		a.push_front(i);
 	}
-	for (int i = 1; i < 10; ++i)
+	for (size_t i = 1; i < 10; ++i)
 	{
 		ASSERT_EQ(10 - i, a.front());
 		a.pop_front();
@@ -56,11 +65,11 @@ TEST(DequeLikeDeque, PopFront)
 TEST(DequeLikeDeque, PopBack)
 {
 	MyDeque<int> a;
-	for (int i = 1; i < 10; ++i)
+	for (size_t i = 1; i < 10; ++i)
 	{
 		a.push_back(i);
 	}
-	for (int i = 1; i < 10; ++i)
+	for (size_t i = 1; i < 10; ++i)
 	{
 		ASSERT_EQ(10 - i, a.back());
 		a.pop_back();
@@ -71,13 +80,13 @@ TEST(DequeLikeDeque, CheckSize)
 {
 	MyDeque<int> a;
 	int n = 10;
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_EQ(i, a.size());
 		a.push_back(i);
 		ASSERT_EQ(i + 1, a.size());
 	}
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_EQ(n - i, a.size());
 		a.pop_back();
@@ -89,9 +98,9 @@ TEST(DequeLikeDeque, CheckEmpty)
 	MyDeque<int> a;
 	int n = 10;
 	ASSERT_TRUE(a.empty());
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 		a.push_back(i);
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_FALSE(a.empty());
 		a.pop_front();
@@ -108,41 +117,14 @@ TEST(DequeLikeVector, SquareScobe)
 		if (i)
 			a.push_front(-i);
 	}
-	for (int i = 0; i < 19; ++i)
+	for (size_t i = 0; i < 19; ++i)
 	{
 		ASSERT_EQ(i - 9, a[i]);
 	}
 }
 
-long long intToLong(int &a)
+template <class iter> void constIteratorTest(iter &it)
 {
-	return a * (1 << 32) + a;
-}
-int intToInt(int &a)
-{
-	return a;
-}
-
-std::string intToString(int &a)
-{
-	std::string s;
-	int n = a;
-	while (n > 0)
-	{
-		s += ('A' + n % 26);
-		n /= 26;
-	}
-	return s;
-}
-
-
-
-TEST(IteratorTest, simpleIterator)
-{
-	MyDeque<int> a(10);
-	int n = 10;
-	fillIntDeque(n, a);
-	auto it = a.begin(), finish = a.end();
 	ASSERT_EQ(1, *it);
 	++it;
 	ASSERT_EQ(2, *it) << "++error";
@@ -157,8 +139,22 @@ TEST(IteratorTest, simpleIterator)
 	ASSERT_EQ(1, *(it -= 5)) << "error-=";
 	ASSERT_EQ(4, *(it + 3)) << "error + idx";
 	ASSERT_EQ(5, it[4]) << "error []";
+}
+
+template <class iter> void unconstIteratorTest(iter &it)
+{
+	constIteratorTest(it);
 	ASSERT_EQ(8, it[4] = 8) << "error [] = ";
 	it[4] = 5;
+}
+
+TEST(IteratorTest, simpleIterator)
+{
+	MyDeque<int> a(10);
+	size_t n = 10;
+	fillIntDeque(n, a);
+
+	unconstIteratorTest(a.begin());
 
 	ASSERT_TRUE (a.begin() < a.end()) << "error <";
 	ASSERT_TRUE ( a.begin() <= a.end()) << "error <=";
@@ -168,24 +164,24 @@ TEST(IteratorTest, simpleIterator)
 
 	std::vector <int> c;
 	MyDeque<int> b;
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		b.push_back(n - i);
 		c.push_back(n - i);
 	}
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_EQ(b[i], c[i]) << "fucking push_back";
 	}
 	std::sort(c.begin(), c.end());
 	std::sort(b.begin(), b.end());
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_EQ(b[i], c[i]) << "after sort";
 	}
 	std::reverse(c.begin(), c.end());
 	std::reverse(b.begin(), b.end());
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_EQ(b[i], c[i]) << "after reverse";
 	}
@@ -193,28 +189,47 @@ TEST(IteratorTest, simpleIterator)
 
 TEST(IteratorTest, ReverseIterator)
 {
-	MyDeque <int> a, b;
-	int n = 9;
-	for (int i = 0; i < n; ++i)
+	MyDeque <int> a, b, c;
+	size_t n = 10;
+	fillIntDeque(n, c);
+	for (size_t i = 0; i < n; ++i)
 	{
 		a.push_back(i);
 		b.push_back(i);
 	}
+	std::reverse(c.begin(), c.end());
+	unconstIteratorTest(c.rbegin()); //simple testing reverse iterators
 	auto iter = a.begin();
 	(*iter) = 0;
-
 	std::reverse(a.begin(), a.end());
 	std::vector <int> toA, toB;
 	for (auto it = a.begin(); it != a.end(); ++it)
 		toA.push_back(*it);
 	for (auto it = b.rbegin(); it != b.rend(); ++it)
 		toB.push_back(*it);
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 		ASSERT_EQ(toA[i], toB[i]) << "reverse";
 	std::reverse(a.rbegin(), a.rend());
-	for (int i = 0; i < n; ++i)
+	for (size_t i = 0; i < n; ++i)
 		ASSERT_EQ(b[i], a[i]) << "reverse to reverse";
 	
+}
+
+TEST(IteratorTest, ConstIteratorTest)
+{
+	MyDeque <int>  c;
+	size_t n = 10;
+	fillIntDeque(n, c);
+	constIteratorTest(c.cbegin()); //simple testing const iterators
+}
+
+TEST(IteratorTest, ConstReverseIteratorTest)
+{
+	MyDeque <int>  c;
+	size_t n = 10;
+	fillIntDeque(n, c);
+	std::reverse(c.begin(), c.end());
+	constIteratorTest(c.crbegin()); //simple testing const iterators
 }
 
 void push_backToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
@@ -258,25 +273,45 @@ void push_frontToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
 	a.push_front(x);
 	b.push_front(x);
 	ASSERT_EQ(a.front(), b.front());
+	ASSERT_EQ(a.size(), b.size());
 }
 
-void extend(MyDeque<int> &my, std::deque<int> &your, int N)
+void extendBoth(MyDeque<int> &my, std::deque<int> &your, int N)
 {
-	for (int i = 0; i < N; ++i)
+	for (size_t i = 0; i < N; ++i)
 	{
 		push_backToBoth(my, your, rand());
 		push_frontToBoth(my, your, rand());
 	}
 }
 
+template<class UniversalHeap> void extendOne(UniversalHeap &H, int N)
+{
+	for (size_t i = 0; i < N; ++i)
+	{
+		H.push_back(rand());
+		H.push_front(rand());
+	}
+}
+
 void makeShorter(MyDeque<int> &my, std::deque<int> &your, int N)
 {
-	for (int i = 0; i < N; ++i)
+	for (size_t i = 0; i < N; ++i)
 	{
 		pop_backToBoth(my, your, rand());
 		pop_frontToBoth(my, your, rand());
 	}
 }
+
+template<class UniversalHeap> void makeShorterOne(UniversalHeap &H, int N)
+{
+	for (size_t i = 0; i < N; ++i)
+	{
+		H.pop_back();
+		H.pop_front();
+	}
+}
+
 void checkEqualDeques(const MyDeque<int> &my, const std::deque<int> &your, std::string mistake)
 {
 	bool ans = 1;
@@ -305,7 +340,42 @@ void reverseBoth(MyDeque<int> &my, std::deque<int> &your)
 	std::reverse(your.begin(), your.end());
 }
 
+template <class UniversalDeque> double stressAllTime(int n)
+{
+	timeType t = getTime();
+	int N = n * 4;
+	UniversalDeque my;
+	extendOne(my, N);
+	makeShorterOne(my, N / 2);
+	extendOne(my, N / 4); 
+	makeShorterOne(my, N / 4);
+	extendOne(my, N / 2);
+	makeShorterOne(my, N / 4 * 3);
+	reverse(my.begin(), my.end());
+	makeShorterOne(my, N / 4);
+	return (getTime() - t) * 1.0 ;
+}
+template <class UniversalDeque> double stressTimePerOperation(int n)
+{
+	return stressAllTime<UniversalDeque> stressAllTime(n) / (17 * n * 8);
+}
+void isLineTime()
+{
+	freopen("lineal.txt", "w", stdout);
+	int N = 100000;
+	int step = 100;
+	for (int i = step; i < N; i += step)
+		printf("%.6f\n", stressAllTime<MyDeque<int> >(i));
+}
 
+void compTimeWithRealDeque()
+{
+	freopen("myVSreal.txt", "w", stdout);
+	int N = 1000000;
+	int step = N / 10;
+	for (int i = step; i < N; i += step)
+		printf("%.6f %.6f\n", stressAllTime<MyDeque<int> >(i), stressAllTime<std::deque<int> > (i));
+}
 
 
 TEST(StressTest, Little)
@@ -313,27 +383,23 @@ TEST(StressTest, Little)
 	int N = 1 << 5;
 	MyDeque<int> my;
 	std::deque <int> your;
-	extend(my, your, N);
+	extendBoth(my, your, N);
 	makeShorter(my, your, N / 2);
-	N /= 2; //N = n / 2
 	sortBothByReverseIterator(my, your);
-	extend(my, your, N / 2); // N / 2 = n / 4
-	N += N / 2; // N = n * 0.75
-	makeShorter(my, your, N / 3);
-	N -= N / 3; //N = n / 2
-	extend(my, your, N);
-	N *= 2;
-		
+	extendBoth(my, your, N / 4);
+	makeShorter(my, your, N / 4);
+	extendBoth(my, your, N / 2);
 	makeShorter(my, your, N / 4 * 3);
-	N /= 4; // N = n / 4
 	reverseBoth(my, your);
-	makeShorter(my, your, N);
+	makeShorter(my, your, N / 4);
 	ASSERT_EQ(my.empty(), your.empty());
 }
 
 
 
 int main(int argc, char **argv) {
+	isLineTime();
+	compTimeWithRealDeque();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
