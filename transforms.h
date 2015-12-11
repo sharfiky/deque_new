@@ -3,7 +3,7 @@
 
 long long intToLong(int &a)
 {
-	return a * (1 << 32) + a;
+	return a * (1ll << 32) + a;
 }
 int intToInt(int &a)
 {

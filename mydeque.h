@@ -10,7 +10,33 @@
 
 const int minCap = 8;
 
-
+template<class Iterator>
+struct iterator_traits {
+	typedef typename Iterator::iterator_category iterator_category;
+	typedef typename Iterator::value_type value_type;
+	typedef typename Iterator::difference_type difference_type;
+	typedef difference_type distance_type;
+	typedef typename Iterator::pointer pointer;
+	typedef typename Iterator::reference reference;
+};
+template<class Type>
+struct iterator_traits<Type*> {
+	typedef std::random_access_iterator_tag iterator_category;
+	typedef Type value_type;
+	typedef ptrdiff_t difference_type;
+	typedef difference_type distance_type;
+	typedef Type *pointer;
+	typedef Type& reference;
+};
+template<class Type>
+struct iterator_traits<const Type*> {
+	typedef std::random_access_iterator_tag iterator_category;
+	typedef Type value_type;
+	typedef ptrdiff_t difference_type;
+	typedef difference_type distance_type;
+	typedef const Type *pointer;
+	typedef const Type& reference;
+};
 
 template<class T> class MyDeque {
 private:
@@ -63,7 +89,7 @@ public:
 		return *this;
 	}
 	~MyDeque() {}
-	int size() const
+	size_t size() const
 	{
 		return (end_ + capacity_ - begin_) % capacity_;
 	}
@@ -170,7 +196,7 @@ public:
 	public:
 		typedef ptrdiff_t difference_type;
 		typedef T value_type;
-		typedef ptrdiff_t difference_type;
+		typedef difference_type distance_type;
 		typedef R& reference;
 		typedef R* pointer;
 		typedef size_t size_type;
@@ -208,7 +234,7 @@ public:
 
 			return *this = normilize_(*this, 1);
 		}
-		base_iterator& operator ++(int)
+		base_iterator& operator ++(T)
 		{
 
 			return *this = normilize_(*this, 1);;
@@ -217,7 +243,7 @@ public:
 		{
 			return *this = normilize_(*this, -1);
 		}
-		base_iterator& operator --(int)
+		base_iterator& operator --(T)
 		{
 			return *this = normilize_(*this, -1);
 		}

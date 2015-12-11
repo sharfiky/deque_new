@@ -79,7 +79,7 @@ TEST(DequeLikeDeque, PopBack)
 TEST(DequeLikeDeque, CheckSize)
 {
 	MyDeque<int> a;
-	int n = 10;
+	size_t n = 10;
 	for (size_t i = 0; i < n; ++i)
 	{
 		ASSERT_EQ(i, a.size());
@@ -96,7 +96,7 @@ TEST(DequeLikeDeque, CheckSize)
 TEST(DequeLikeDeque, CheckEmpty)
 {
 	MyDeque<int> a;
-	int n = 10;
+	size_t n = 10;
 	ASSERT_TRUE(a.empty());
 	for (size_t i = 0; i < n; ++i)
 		a.push_back(i);
@@ -109,13 +109,13 @@ TEST(DequeLikeDeque, CheckEmpty)
 }
 TEST(DequeLikeVector, SquareScobe)
 {
-	int n = 10;
+	size_t n = 10;
 	MyDeque<int> a;
-	for (int i = 0; i < 10; ++i)
+	for (size_t i = 0; i < 10; ++i)
 	{
 		a.push_back(i);
 		if (i)
-			a.push_front(-i);
+			a.push_front(-static_cast<int>(i));
 	}
 	for (size_t i = 0; i < 19; ++i)
 	{
@@ -276,7 +276,7 @@ void push_frontToBoth(MyDeque<int> &a, std::deque<int> &b, int x)
 	ASSERT_EQ(a.size(), b.size());
 }
 
-void extendBoth(MyDeque<int> &my, std::deque<int> &your, int N)
+void extendBoth(MyDeque<int> &my, std::deque<int> &your, size_t N)
 {
 	for (size_t i = 0; i < N; ++i)
 	{
@@ -285,7 +285,7 @@ void extendBoth(MyDeque<int> &my, std::deque<int> &your, int N)
 	}
 }
 
-template<class UniversalHeap> void extendOne(UniversalHeap &H, int N)
+template<class UniversalHeap> void extendOne(UniversalHeap &H, size_t N)
 {
 	for (size_t i = 0; i < N; ++i)
 	{
@@ -294,7 +294,7 @@ template<class UniversalHeap> void extendOne(UniversalHeap &H, int N)
 	}
 }
 
-void makeShorter(MyDeque<int> &my, std::deque<int> &your, int N)
+void makeShorter(MyDeque<int> &my, std::deque<int> &your, size_t N)
 {
 	for (size_t i = 0; i < N; ++i)
 	{
@@ -303,7 +303,7 @@ void makeShorter(MyDeque<int> &my, std::deque<int> &your, int N)
 	}
 }
 
-template<class UniversalHeap> void makeShorterOne(UniversalHeap &H, int N)
+template<class UniversalHeap> void makeShorterOne(UniversalHeap &H, size_t N)
 {
 	for (size_t i = 0; i < N; ++i)
 	{
@@ -314,7 +314,6 @@ template<class UniversalHeap> void makeShorterOne(UniversalHeap &H, int N)
 
 void checkEqualDeques(const MyDeque<int> &my, const std::deque<int> &your, std::string mistake)
 {
-	bool ans = 1;
 	ASSERT_EQ(my.size(), your.size());
 	for (size_t i = 0; i < my.size(); ++i)
 		ASSERT_EQ(my[i], your[i]) << "mistake in " << mistake;
@@ -340,10 +339,10 @@ void reverseBoth(MyDeque<int> &my, std::deque<int> &your)
 	std::reverse(your.begin(), your.end());
 }
 
-template <class UniversalDeque> double stressAllTime(int n)
+template <class UniversalDeque> double stressAllTime(size_t n)
 {
 	timeType t = getTime();
-	int N = n * 4;
+	size_t N = n * 4;
 	UniversalDeque my;
 	extendOne(my, N);
 	makeShorterOne(my, N / 2);
@@ -355,39 +354,38 @@ template <class UniversalDeque> double stressAllTime(int n)
 	makeShorterOne(my, N / 4);
 	return (getTime() - t) * 1.0 ;
 }
-template <class UniversalDeque> double stressTimePerOperation(int n)
+template <class UniversalDeque> double stressTimePerOperation(size_t n)
 {
 	return stressAllTime<UniversalDeque> stressAllTime(n) / (17 * n * 8);
 }
-void isLineTime()
+void isLineTime(size_t N)
 {
 	freopen("lineal.txt", "w", stdout);
-	int N = 100000;
-	int step = 100;
-	for (int i = step; i < N; i += step)
+	size_t step = N / 100;
+	for (size_t i = step; i < N; i += step)
 		printf("%.6f\n", stressAllTime<MyDeque<int> >(i));
 }
 
-void compTimeWithRealDeque()
+void compTimeWithRealDeque(size_t N)
 {
 	freopen("myVSreal.txt", "w", stdout);
-	int N = 1000000;
-	int step = N / 10;
-	for (int i = step; i < N; i += step)
+	size_t step = N / 10;
+	for (size_t i = step; i < N; i += step)
 		printf("%.6f %.6f\n", stressAllTime<MyDeque<int> >(i), stressAllTime<std::deque<int> > (i));
 }
 
 
 TEST(StressTest, Little)
 {
-	int N = 1 << 5;
+	size_t N = 1 << 6;
 	MyDeque<int> my;
 	std::deque <int> your;
 	extendBoth(my, your, N);
 	makeShorter(my, your, N / 2);
-	sortBothByReverseIterator(my, your);
+	sortBothByNormalIterator(my, your);
 	extendBoth(my, your, N / 4);
 	makeShorter(my, your, N / 4);
+	sortBothByReverseIterator(my, your);
 	extendBoth(my, your, N / 2);
 	makeShorter(my, your, N / 4 * 3);
 	reverseBoth(my, your);
@@ -395,11 +393,19 @@ TEST(StressTest, Little)
 	ASSERT_EQ(my.empty(), your.empty());
 }
 
+void testPerformance(size_t N)
+{
+	isLineTime(N);
+	compTimeWithRealDeque(N);
+}
+
+TEST(Performance, lineal)
+{
+	testPerformance(1000);
+}
 
 
 int main(int argc, char **argv) {
-	isLineTime();
-	compTimeWithRealDeque();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
