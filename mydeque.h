@@ -231,7 +231,6 @@ public:
 		}
 		base_iterator& operator ++()
 		{
-
 			return *this = normilize_(*this, 1);
 		}
 		base_iterator& operator ++(T)
@@ -243,7 +242,7 @@ public:
 		{
 			return *this = normilize_(*this, -1);
 		}
-		base_iterator& operator --(T)
+		base_iterator& operator --(int)
 		{
 			return *this = normilize_(*this, -1);
 		}

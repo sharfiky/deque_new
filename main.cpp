@@ -360,24 +360,24 @@ template <class UniversalDeque> double stressTimePerOperation(size_t n)
 }
 void isLineTime(size_t N)
 {
-	freopen("lineal.txt", "w", stdout);
+	FILE *linealFile =  fopen("lineal.txt", "w");
 	size_t step = N / 100;
 	for (size_t i = step; i < N; i += step)
-		printf("%.6f\n", stressAllTime<MyDeque<int> >(i));
+		fprintf(linealFile, "%.6f\n", stressAllTime<MyDeque<int> >(i));
 }
 
 void compTimeWithRealDeque(size_t N)
 {
-	freopen("myVSreal.txt", "w", stdout);
+	FILE *compareFile = fopen("myVSreal.txt", "w");
 	size_t step = N / 10;
 	for (size_t i = step; i < N; i += step)
-		printf("%.6f %.6f\n", stressAllTime<MyDeque<int> >(i), stressAllTime<std::deque<int> > (i));
+		fprintf(compareFile, "%.6f %.6f\n", stressAllTime<MyDeque<int> >(i), stressAllTime<std::deque<int> > (i));
 }
 
 
 TEST(StressTest, Little)
 {
-	size_t N = 1 << 6;
+	size_t N = 1 << 5;
 	MyDeque<int> my;
 	std::deque <int> your;
 	extendBoth(my, your, N);
